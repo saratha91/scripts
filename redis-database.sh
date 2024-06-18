@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Install Redis server and then start/stop and take backup.
+# Install Redis server and then start,stop and take backup.
 
 
 #only allow root user to execute the script.
@@ -12,29 +12,58 @@ fi
 
 #Defining functions 
 function get_server_install(){
-  printf "Install Redis server...\n"
-#Download Redis server.
-  sudo apt install redis;
-  redis-server --version | awk '{print $1 $2 $3}';
-  printf "Redis server is installed.... \n"
-}
+  read -p "enter the option 'yes' OR 'no' to install Redis server:" option;
+  if [ $option == 'yes' ]; then
+    sudo apt install redis;
+    redis-server --version | awk '{print $1 $2 $3}';
+    printf "Redis server is installed... \n"
+  elif [ $option == 'no' ]; then
+    printf "Redis server is not installed.... \n"
+  else
+    printf "Invalid input. \n"
+  fi
+}  
+
 
 function get_server_start(){
-  printf "start Redis server...\n"
-  sudo systemctl start redis.service;
-  sudo systemctl status redis.service;
+  read -p "enter the option 'yes' to start Redis server:" option;
+  if [ $option == 'yes' ]; then
+    sudo systemctl start redis;
+    printf "starting  Redis server...\n"
+    sudo systemctl status redis;
+  else
+    printf "Invalid input. \n"
+  fi
 }
 
 function get_server_stop(){
-  printf "stop Redis server...\n" 
-  sudo systemctl stop redis.service;
-  sudo systemctl status redis.service;
+  read -p "enter the option 'yes' to stop Redis server:" option;
+  if [ $option == 'yes' ]; then
+    sudo systemctl stop redis;
+    printf "stoping Redis server...\n"
+    sudo systemctl status redis;
+  else
+    printf "Invalid input. \n"
+  fi
+
 }
 
 function get_server_backup(){
-  printf "backup Redis server...\n" 
-  sudo cp /home/vagrant/dump.rdb /home/vagrant/test.txt;
-  echo = $(cat test.txt);
+  read -p "enter the option 'yes' to get backup of Redis server:" option;
+  if [ $option == 'yes' ]; then
+    STATUS=$(systemctl is-active redis.service);
+    if [ ${STATUS} = "active" ]; then
+      printf "Redis server is ACTIVE..\n"
+      printf "Redis server started to backup ...\n" 
+      redis-cli BGSAVE;
+    else
+      printf "Redis server is NOT ACTIVE..\n"
+      printf "backup operation is failed.... \n"
+    fi
+  else
+    printf "Invalid input. \n"
+    
+  fi
 }
 
 #calling functions
@@ -52,6 +81,6 @@ case $1 in
    get_server_backup
     ;;   
   *)
-   printf "Help: ./redis-database.sh {Install|start|stop|backup}\n"
+   printf "Help: ./redis-database.sh {install|start|stop|backup}\n"
     ;; 
 esac
